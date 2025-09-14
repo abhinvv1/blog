@@ -9,6 +9,9 @@ import { siteConfig } from '@/lib/config';
 import { TableOfContents } from '@/components/TableOfContents';
 import { MDXRemote } from 'next-mdx-remote/rsc';
 import { BackButton } from '@/components/NavigationButtons';
+import { BookmarkSystem } from '@/components/BookmarkSystem';
+import { CommentSystem } from '@/components/CommentSystem';
+import { ReadingProgress } from '@/components/ReadingProgress';
 
 interface PostPageProps {
   params: {
@@ -64,9 +67,13 @@ export default function PostPage({ params }: PostPageProps) {
   const shareUrl = `${siteConfig.url}/posts/${post.slug}`;
 
   return (
-    <article className="max-w-4xl">
-      {/* Back Button */}
-      <BackButton />
+    <>
+      {/* Reading Progress Indicator */}
+      <ReadingProgress readTime={post.readTime} />
+      
+      <article className="max-w-4xl">
+        {/* Back Button */}
+        <BackButton />
 
       {/* Article Header */}
       <header className="mb-12">
@@ -94,8 +101,9 @@ export default function PostPage({ params }: PostPageProps) {
           )}
         </div>
 
-        {/* Social Follow Button */}
-        <div className="mb-8">
+        {/* Action Buttons */}
+        <div className="flex flex-wrap items-center gap-4 mb-8">
+          {/* Social Follow Button */}
           <a
             href={`https://twitter.com/intent/follow?screen_name=${siteConfig.author.twitter}`}
             target="_blank"
@@ -105,6 +113,9 @@ export default function PostPage({ params }: PostPageProps) {
             <Twitter className="h-4 w-4" />
             <span>Follow @{siteConfig.author.twitter || 'username'}</span>
           </a>
+
+          {/* Bookmark Button */}
+          <BookmarkSystem postSlug={post.slug} postTitle={post.title} />
         </div>
 
         {/* Post Description */}
@@ -164,7 +175,7 @@ export default function PostPage({ params }: PostPageProps) {
                 <Twitter className="h-4 w-4" />
                 <span>Tweet</span>
               </a>
-               <button
+              <button
                 onClick={() => navigator.clipboard.writeText(shareUrl)}
                 className="inline-flex items-center space-x-2 bg-dark-800 hover:bg-dark-700 text-dark-200 px-4 py-2 rounded-md transition-colors duration-200 text-sm"
               >
@@ -217,6 +228,10 @@ export default function PostPage({ params }: PostPageProps) {
           </div>
         </nav>
       )}
+
+      {/* Comments Section */}
+      <CommentSystem postSlug={post.slug} />
     </article>
+    </>
   );
 }
