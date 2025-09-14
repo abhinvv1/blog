@@ -25,46 +25,103 @@ export function CommentSystem({ postSlug }: CommentSystemProps) {
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Load comments from localStorage on mount
+  // Load comments from API
   useEffect(() => {
-    const storedComments = localStorage.getItem(`comments-${postSlug}`);
-    if (storedComments) {
-      setComments(JSON.parse(storedComments));
-    }
+    const fetchComments = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch(`/api/comments?postSlug=${encodeURIComponent(postSlug)}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch comments');
+        }
+        
+        const data = await response.json();
+        setComments(data.comments || []);
+      } catch (err) {
+        console.error('Error fetching comments:', err);
+        setError('Failed to load comments');
+        
+        // Fallback to localStorage if API fails
+        const storedComments = localStorage.getItem(`comments-${postSlug}`);
+        if (storedComments) {
+          setComments(JSON.parse(storedComments));
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchComments();
   }, [postSlug]);
 
-  // Save comments to localStorage
-  const saveComments = (updatedComments: Comment[]) => {
-    localStorage.setItem(`comments-${postSlug}`, JSON.stringify(updatedComments));
-    setComments(updatedComments);
-  };
-
-  // Add new comment
+  // Add new comment via API
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newComment.trim()) return;
 
     setIsSubmitting(true);
+    setError(null);
 
-    const comment: Comment = {
-      id: Date.now().toString(),
-      postSlug,
-      author: isAnonymous ? 'Anonymous' : (author.trim() || 'Anonymous'),
-      content: newComment.trim(),
-      timestamp: new Date().toISOString(),
-      isAnonymous,
-      parentId: replyTo || undefined,
-    };
+    try {
+      const response = await fetch('/api/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          postSlug,
+          author: isAnonymous ? 'Anonymous' : (author.trim() || 'Anonymous'),
+          content: newComment.trim(),
+          isAnonymous,
+          parentId: replyTo || undefined,
+        }),
+      });
 
-    const updatedComments = [...comments, comment];
-    saveComments(updatedComments);
-    
-    // Reset form
-    setNewComment('');
-    if (!isAnonymous) setAuthor('');
-    setReplyTo(null);
-    setIsSubmitting(false);
+      if (!response.ok) {
+        throw new Error('Failed to add comment');
+      }
+
+      const data = await response.json();
+      const updatedComments = [...comments, data.comment];
+      setComments(updatedComments);
+      
+      // Also update localStorage as backup
+      localStorage.setItem(`comments-${postSlug}`, JSON.stringify(updatedComments));
+      
+      // Reset form
+      setNewComment('');
+      if (!isAnonymous) setAuthor('');
+      setReplyTo(null);
+    } catch (err) {
+      console.error('Error adding comment:', err);
+      setError('Failed to add comment. Please try again.');
+      
+      // Fallback to localStorage if API fails
+      const comment: Comment = {
+        id: Date.now().toString(),
+        postSlug,
+        author: isAnonymous ? 'Anonymous' : (author.trim() || 'Anonymous'),
+        content: newComment.trim(),
+        timestamp: new Date().toISOString(),
+        isAnonymous,
+        parentId: replyTo || undefined,
+      };
+
+      const updatedComments = [...comments, comment];
+      setComments(updatedComments);
+      localStorage.setItem(`comments-${postSlug}`, JSON.stringify(updatedComments));
+      
+      // Reset form
+      setNewComment('');
+      if (!isAnonymous) setAuthor('');
+      setReplyTo(null);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Get nested comments structure
@@ -197,6 +254,13 @@ export function CommentSystem({ postSlug }: CommentSystemProps) {
         </h3>
       </div>
 
+      {/* Error message */}
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+          <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+        </div>
+      )}
+
       {/* Comment form */}
       <div className="comment-card mb-8">
         <h4 className="text-lg font-medium mb-4 dark:text-dark-200 light:text-slate-800">
@@ -259,7 +323,12 @@ export function CommentSystem({ postSlug }: CommentSystemProps) {
 
       {/* Comments list */}
       <div className="space-y-6">
-        {rootComments.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin h-8 w-8 border-2 border-primary-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+            <p className="text-muted">Loading comments...</p>
+          </div>
+        ) : rootComments.length === 0 ? (
           <div className="text-center py-12">
             <MessageCircle className="h-12 w-12 text-muted mx-auto mb-4" />
             <p className="text-muted">No comments yet. Be the first to comment!</p>
