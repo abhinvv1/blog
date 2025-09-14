@@ -56,7 +56,7 @@ export function filterPostsByTag<T extends { tags: string[] }>(posts: T[], tag: 
 // Get unique tags from posts
 export function getUniqueTags<T extends { tags: string[] }>(posts: T[]): string[] {
   const allTags = posts.flatMap(post => post.tags);
-  return [...new Set(allTags)].sort();
+  return Array.from(new Set(allTags)).sort();
 }
 
 // Search posts by title, description, or tags
