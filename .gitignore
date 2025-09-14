@@ -1,4 +1,5 @@
 node_modules
+/.next
 # Dependencies
 /node_modules
 /.pnp
@@ -26,6 +27,7 @@ yarn-error.log*
 # Local env files
 .env*.local
 .env
+.env.local
 
 # Vercel
 .vercel
