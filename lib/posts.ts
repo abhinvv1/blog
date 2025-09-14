@@ -135,6 +135,8 @@ export function getAdjacentPosts(currentSlug: string): {
 
 // Create a new post (for the editor)
 export function createPost(postData: Partial<Post>): string {
+  if (typeof window !== 'undefined' || !fs || !path || !matter || !postsDirectory) return '';
+  
   const slug = postData.slug || generateSlug(postData.title || 'untitled');
   const now = new Date().toISOString();
   
@@ -165,6 +167,8 @@ export function createPost(postData: Partial<Post>): string {
 
 // Update an existing post
 export function updatePost(slug: string, postData: Partial<Post>): boolean {
+  if (typeof window !== 'undefined' || !fs || !path || !matter || !postsDirectory) return false;
+  
   try {
     const existingPost = getPostBySlug(slug);
     if (!existingPost) return false;
@@ -194,6 +198,8 @@ export function updatePost(slug: string, postData: Partial<Post>): boolean {
 
 // Delete a post
 export function deletePost(slug: string): boolean {
+  if (typeof window !== 'undefined' || !fs || !path || !postsDirectory) return false;
+  
   try {
     const filePath = path.join(postsDirectory, `${slug}.mdx`);
     if (fs.existsSync(filePath)) {

@@ -8,10 +8,21 @@ const nextConfig = {
     domains: ['localhost'],
     formats: ['image/webp', 'image/avif'],
   },
-  // Enable static exports for better hosting compatibility
   output: 'export',
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+        os: false,
+        crypto: false,
+      };
+    }
+    return config;
+  },
 }
 
 module.exports = nextConfig

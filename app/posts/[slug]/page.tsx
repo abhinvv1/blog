@@ -8,6 +8,7 @@ import { formatDateTime } from '@/lib/utils';
 import { siteConfig } from '@/lib/config';
 import { TableOfContents } from '@/components/TableOfContents';
 import { MDXRemote } from 'next-mdx-remote/rsc';
+import { BackButton } from '@/components/NavigationButtons';
 
 interface PostPageProps {
   params: {
@@ -61,18 +62,11 @@ export default function PostPage({ params }: PostPageProps) {
 
   const { previous, next } = getAdjacentPosts(params.slug);
   const shareUrl = `${siteConfig.url}/posts/${post.slug}`;
-  const shareText = `Check out "${post.title}" by ${post.author || siteConfig.author.name}`;
 
   return (
     <article className="max-w-4xl">
       {/* Back Button */}
-      <Link
-        href="/posts"
-        className="inline-flex items-center space-x-2 text-dark-400 hover:text-primary-500 transition-colors duration-200 mb-8"
-      >
-        <ArrowLeft className="h-4 w-4" />
-        <span>Go back</span>
-      </Link>
+      <BackButton />
 
       {/* Article Header */}
       <header className="mb-12">
@@ -161,7 +155,7 @@ export default function PostPage({ params }: PostPageProps) {
           <div className="mt-12 pt-8 border-t border-dark-700">
             <h3 className="text-lg font-semibold text-dark-200 mb-4">Share this post</h3>
             <div className="flex items-center space-x-4">
-              <a
+              {/* <a
                 href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -170,12 +164,12 @@ export default function PostPage({ params }: PostPageProps) {
                 <Twitter className="h-4 w-4" />
                 <span>Tweet</span>
               </a>
-              <button
+               <button
                 onClick={() => navigator.clipboard.writeText(shareUrl)}
                 className="inline-flex items-center space-x-2 bg-dark-800 hover:bg-dark-700 text-dark-200 px-4 py-2 rounded-md transition-colors duration-200 text-sm"
               >
                 <span>Copy link</span>
-              </button>
+              </button> */}
             </div>
           </div>
         </div>

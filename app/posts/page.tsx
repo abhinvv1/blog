@@ -89,18 +89,10 @@ export default function PostsPage() {
         )}
       </div>
 
-      {/* Pagination placeholder - can be implemented later */}
+      {/* Pagination placeholder - removed static buttons to prevent SSR issues */}
       {posts.length > 10 && (
-        <div className="mt-12 flex justify-center">
-          <div className="flex items-center space-x-4">
-            <button className="btn-secondary" disabled>
-              Previous
-            </button>
-            <span className="text-dark-400">Page 1 of 1</span>
-            <button className="btn-secondary" disabled>
-              Next
-            </button>
-          </div>
+        <div className="mt-12 text-center text-dark-400">
+          <p>Pagination will be added for large post collections</p>
         </div>
       )}
     </div>

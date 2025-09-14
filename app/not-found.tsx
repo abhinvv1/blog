@@ -1,7 +1,17 @@
+'use client';
+
 import Link from 'next/link';
 import { ArrowLeft, Home } from 'lucide-react';
 
 export default function NotFound() {
+  const goBack = () => {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
+      window.history.back();
+    } else {
+      window.location.href = '/';
+    }
+  };
+
   return (
     <div className="text-center py-16">
       <div className="max-w-md mx-auto">
@@ -20,7 +30,7 @@ export default function NotFound() {
             <span>Go Home</span>
           </Link>
           <button
-            onClick={() => window.history.back()}
+            onClick={goBack}
             className="btn-secondary inline-flex items-center space-x-2"
           >
             <ArrowLeft className="h-4 w-4" />
