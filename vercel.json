@@ -32,10 +32,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "NEXT_PUBLIC_GITHUB_OWNER": "@github_owner",
-    "NEXT_PUBLIC_GITHUB_REPO": "@github_repo",
-    "GITHUB_TOKEN": "@github_token"
-  }
+  ]
 }
