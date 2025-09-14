@@ -33,7 +33,7 @@ export function SearchComponent({
 }: SearchComponentProps) {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [selectedType, setSelectedType] = useState<'all' | 'posts' | 'projects'>('all');
+  const [selectedType, setSelectedType] = useState<'all' | 'post' | 'project'>('all');
   const [selectedTag, setSelectedTag] = useState<string>('');
   
   // Debounce the search query
@@ -137,12 +137,12 @@ export function SearchComponent({
             <span className="text-sm text-dark-400">Type:</span>
             <select
               value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value as 'all' | 'posts' | 'projects')}
+              onChange={(e) => setSelectedType(e.target.value as 'all' | 'post' | 'project')}
               className="bg-dark-800 border border-dark-700 rounded px-3 py-1 text-sm text-dark-200 focus:border-primary-500 focus:ring-0"
             >
               <option value="all">All</option>
-              <option value="posts">Posts</option>
-              <option value="projects">Projects</option>
+              <option value="post">Posts</option>
+              <option value="project">Projects</option>
             </select>
           </div>
 
