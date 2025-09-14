@@ -8,7 +8,7 @@ const nextConfig = {
     domains: ['localhost'],
     formats: ['image/webp', 'image/avif'],
   },
-  output: 'export',
+  // Removed output: 'export' to enable API routes for comment system
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
   webpack: (config, { isServer }) => {
