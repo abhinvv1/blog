@@ -1,0 +1,495 @@
+---
+title: "Custom CPU simulation and testing"
+description: "Walkthrough for how the Mrav CPU project handles RTL simulation and other testing aspects."
+date: "2025-09-07"
+tags: ["CPU Design", "RTL", "SystemVerilog", "Testing", "Simulation", "Hardware"]
+published: true
+featured: false
+author: "Your Name"
+---
+
+# Custom CPU simulation and testing
+
+Building a custom CPU is one thing, but ensuring it works correctly is another challenge entirely. In this post, I'll walk through the comprehensive testing and simulation strategy used in the Mrav CPU project, covering everything from unit tests to full system simulation.
+
+## Testing Philosophy
+
+When designing custom hardware, testing isn't just important—it's absolutely critical. Unlike software bugs that can be patched with updates, hardware bugs can be extremely expensive to fix once silicon is manufactured. Our testing strategy follows several key principles:
+
+### Verification-Driven Development
+
+- **Test-first approach**: Write tests before implementing features
+- **Continuous validation**: Run tests on every change
+- **Coverage tracking**: Ensure all code paths are exercised
+- **Formal verification**: Use mathematical proofs where possible
+
+### Multi-Level Testing Strategy
+
+1. **Unit tests**: Individual modules and components
+2. **Integration tests**: Interfaces between modules
+3. **System tests**: Complete CPU running real programs
+4. **Performance tests**: Timing and resource utilization
+
+## RTL Simulation Framework
+
+The foundation of our testing strategy is a comprehensive RTL (Register Transfer Level) simulation framework built around industry-standard tools.
+
+### Tool Chain
+
+- **Verilator**: Fast, free SystemVerilog simulator
+- **GTKWave**: Waveform viewer for debugging
+- **Cocotb**: Python-based testbench framework
+- **Coverage tools**: Code and functional coverage analysis
+
+### Project Structure
+
+```
+mrav-cpu/
+├── rtl/               # SystemVerilog source files
+├── tb/                # Testbench files
+│   ├── unit/          # Unit tests
+│   ├── integration/   # Integration tests
+│   └── system/        # System-level tests
+├── tools/             # Testing utilities
+└── sim/               # Simulation outputs
+```
+
+## Unit Testing Strategy
+
+Every major module in the CPU has dedicated unit tests that exercise all functionality in isolation.
+
+### ALU Testing
+
+The Arithmetic Logic Unit (ALU) is one of the most critical components:
+
+```python
+# Example ALU test using Cocotb
+@cocotb.test()
+async def test_alu_add(dut):
+    """Test ALU addition operation"""
+    
+    # Test data
+    test_cases = [
+        (0x12345678, 0x87654321, 0x99999999),
+        (0xFFFFFFFF, 0x00000001, 0x00000000),  # Overflow
+        (0x80000000, 0x80000000, 0x00000000),  # Signed overflow
+    ]
+    
+    for a, b, expected in test_cases:
+        dut.alu_op.value = ALU_OP_ADD
+        dut.operand_a.value = a
+        dut.operand_b.value = b
+        
+        await Timer(1, units='ns')
+        
+        assert dut.result.value == expected
+        assert dut.flags.value.zero == (expected == 0)
+```
+
+### Memory Controller Testing
+
+The memory controller requires careful testing of timing and protocol compliance:
+
+```python
+@cocotb.test()
+async def test_memory_read_cycle(dut):
+    """Test memory read timing"""
+    
+    # Initialize
+    dut.mem_read.value = 0
+    dut.address.value = 0x1000
+    await RisingEdge(dut.clk)
+    
+    # Start read cycle
+    dut.mem_read.value = 1
+    await RisingEdge(dut.clk)
+    
+    # Check address is stable
+    assert dut.mem_addr.value == 0x1000
+    assert dut.mem_en.value == 1
+    
+    # Wait for data ready
+    await FallingEdge(dut.mem_ready)
+    
+    # Verify data latched correctly
+    expected_data = 0xDEADBEEF
+    dut.mem_data_in.value = expected_data
+    await RisingEdge(dut.clk)
+    
+    assert dut.data_out.value == expected_data
+```
+
+## Integration Testing
+
+Integration tests verify that multiple modules work correctly together.
+
+### CPU Core Integration
+
+Testing the complete CPU core with realistic instruction sequences:
+
+```python
+@cocotb.test()
+async def test_pipeline_hazards(dut):
+    """Test pipeline hazard detection and resolution"""
+    
+    # Load program with data hazards
+    program = [
+        0x00100093,  # addi x1, x0, 1
+        0x00200113,  # addi x2, x0, 2  
+        0x002081B3,  # add x3, x1, x2   # RAW hazard on x1, x2
+        0x003101B3,  # add x3, x2, x3   # RAW hazard on x3
+    ]
+    
+    await load_program(dut, program)
+    await reset_cpu(dut)
+    
+    # Execute and verify forwarding works
+    for cycle in range(10):
+        await RisingEdge(dut.clk)
+        
+        # Check pipeline stages
+        if dut.pipeline.decode.valid.value:
+            log_instruction(dut.pipeline.decode.instruction.value)
+        
+        # Verify hazard detection
+        if dut.hazard_unit.stall.value:
+            logger.info(f"Stall detected at cycle {cycle}")
+    
+    # Verify final register values
+    assert dut.register_file.regs[3].value == 3  # x3 = x1 + x2 = 1 + 2
+```
+
+### Cache Testing
+
+Cache coherency and performance testing:
+
+```python
+@cocotb.test()
+async def test_cache_miss_handling(dut):
+    """Test cache miss and refill logic"""
+    
+    # Clear cache
+    await flush_cache(dut)
+    
+    # Access data not in cache
+    address = 0x2000
+    await memory_read(dut, address)
+    
+    # Verify cache miss detected
+    assert dut.cache.miss.value == 1
+    
+    # Wait for memory fetch
+    await wait_for_memory_ready(dut)
+    
+    # Verify data loaded into cache
+    cache_line = get_cache_line(dut, address)
+    assert cache_line.valid == 1
+    assert cache_line.tag == get_tag(address)
+    
+    # Subsequent access should hit
+    await memory_read(dut, address)
+    assert dut.cache.hit.value == 1
+```
+
+## System-Level Testing
+
+System tests run complete programs and verify correct execution from start to finish.
+
+### Instruction Set Architecture (ISA) Testing
+
+We run the official RISC-V compliance tests to ensure ISA compatibility:
+
+```python
+@cocotb.test()
+async def test_riscv_compliance(dut):
+    """Run RISC-V compliance test suite"""
+    
+    test_programs = [
+        "rv32i-p-add",
+        "rv32i-p-addi", 
+        "rv32i-p-and",
+        "rv32i-p-andi",
+        # ... more tests
+    ]
+    
+    for test_name in test_programs:
+        logger.info(f"Running test: {test_name}")
+        
+        # Load test program
+        program = load_test_program(test_name)
+        await load_program(dut, program)
+        
+        # Run until completion
+        await run_until_halt(dut)
+        
+        # Check test results
+        result = get_test_result(dut)
+        assert result == TEST_PASS, f"Test {test_name} failed"
+```
+
+### Operating System Boot Testing
+
+Testing ability to boot a real operating system:
+
+```python
+@cocotb.test()
+async def test_linux_boot(dut):
+    """Test booting Linux kernel"""
+    
+    # Load bootloader
+    bootloader = load_binary("bootloader.bin")
+    await load_program(dut, bootloader, address=0x80000000)
+    
+    # Load kernel image  
+    kernel = load_binary("vmlinux")
+    await load_program(dut, kernel, address=0x80200000)
+    
+    # Load device tree
+    dtb = load_binary("system.dtb")
+    await load_program(dut, dtb, address=0x82000000)
+    
+    # Start execution
+    dut.pc.value = 0x80000000
+    await run_for_cycles(dut, 1000000)
+    
+    # Look for kernel boot messages
+    uart_output = get_uart_output(dut)
+    assert "Linux version" in uart_output
+    assert "Kernel command line:" in uart_output
+```
+
+## Performance Testing
+
+Beyond functional correctness, we also test performance characteristics.
+
+### Benchmark Execution
+
+Running standard benchmarks to measure performance:
+
+```python
+@cocotb.test()
+async def test_dhrystone_benchmark(dut):
+    """Run Dhrystone performance benchmark"""
+    
+    # Load Dhrystone executable
+    dhrystone = load_elf("dhrystone.elf")
+    await load_program(dut, dhrystone)
+    
+    # Measure execution time
+    start_cycles = dut.cycle_count.value
+    await run_until_halt(dut)
+    end_cycles = dut.cycle_count.value
+    
+    total_cycles = end_cycles - start_cycles
+    
+    # Calculate performance metrics
+    frequency = 100e6  # 100 MHz
+    execution_time = total_cycles / frequency
+    dhrystones_per_second = DHRYSTONE_LOOPS / execution_time
+    
+    logger.info(f"Dhrystone performance: {dhrystones_per_second:.0f} DMIPS")
+    
+    # Verify performance meets targets
+    assert dhrystones_per_second >= TARGET_DMIPS
+```
+
+### Cache Performance Analysis
+
+Analyzing cache hit rates and memory access patterns:
+
+```python
+@cocotb.test()
+async def test_cache_performance(dut):
+    """Analyze cache performance metrics"""
+    
+    # Run memory-intensive workload
+    workload = generate_memory_workload()
+    await run_workload(dut, workload)
+    
+    # Collect cache statistics
+    total_accesses = dut.cache.total_accesses.value
+    cache_hits = dut.cache.hits.value
+    cache_misses = dut.cache.misses.value
+    
+    hit_rate = cache_hits / total_accesses
+    miss_rate = cache_misses / total_accesses
+    
+    logger.info(f"Cache hit rate: {hit_rate*100:.1f}%")
+    logger.info(f"Cache miss rate: {miss_rate*100:.1f}%")
+    
+    # Verify performance targets
+    assert hit_rate >= TARGET_HIT_RATE
+```
+
+## Continuous Integration
+
+All tests run automatically on every code change using GitHub Actions:
+
+```yaml
+name: RTL Testing
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install verilator gtkwave
+          pip install cocotb
+      
+      - name: Run unit tests
+        run: make test-unit
+        
+      - name: Run integration tests  
+        run: make test-integration
+        
+      - name: Run system tests
+        run: make test-system
+        
+      - name: Generate coverage report
+        run: make coverage
+        
+      - name: Upload results
+        uses: actions/upload-artifact@v2
+        with:
+          name: test-results
+          path: sim/results/
+```
+
+## Debug and Analysis Tools
+
+### Waveform Analysis
+
+GTKWave integration for visual debugging:
+
+```python
+def save_waveform(dut):
+    """Save simulation waveform for analysis"""
+    
+    with dut.monitor_signals([
+        "clk",
+        "reset", 
+        "pc",
+        "instruction",
+        "register_file.regs",
+        "pipeline.fetch.valid",
+        "pipeline.decode.valid", 
+        "pipeline.execute.valid",
+        "pipeline.memory.valid",
+        "pipeline.writeback.valid",
+    ]) as signals:
+        # Simulation runs here
+        pass
+    
+    # Waveform automatically saved to sim.vcd
+```
+
+### Performance Profiling
+
+Built-in performance counters for analysis:
+
+```python
+def analyze_performance(dut):
+    """Analyze CPU performance metrics"""
+    
+    metrics = {
+        'instructions_retired': dut.perf.instructions.value,
+        'cycles_executed': dut.perf.cycles.value,  
+        'cache_hits': dut.perf.cache_hits.value,
+        'cache_misses': dut.perf.cache_misses.value,
+        'branch_predictions': dut.perf.branch_pred.value,
+        'branch_mispredictions': dut.perf.branch_miss.value,
+    }
+    
+    # Calculate derived metrics
+    ipc = metrics['instructions_retired'] / metrics['cycles_executed']
+    hit_rate = metrics['cache_hits'] / (metrics['cache_hits'] + metrics['cache_misses'])
+    branch_accuracy = metrics['branch_predictions'] / (metrics['branch_predictions'] + metrics['branch_mispredictions'])
+    
+    logger.info(f"Instructions per cycle: {ipc:.2f}")
+    logger.info(f"Cache hit rate: {hit_rate*100:.1f}%") 
+    logger.info(f"Branch prediction accuracy: {branch_accuracy*100:.1f}%")
+    
+    return metrics
+```
+
+## Coverage Analysis
+
+We track both code coverage and functional coverage to ensure thorough testing.
+
+### Code Coverage
+
+Measuring which RTL code has been exercised:
+
+```bash
+# Generate coverage database
+verilator --coverage --trace coverage.cpp mrav_cpu.sv
+
+# Run tests with coverage
+./coverage_test
+
+# Generate coverage report  
+verilator_coverage --annotate coverage/ coverage.dat
+
+# View results
+firefox coverage/index.html
+```
+
+### Functional Coverage
+
+Ensuring all features and corner cases are tested:
+
+```python
+class InstructionCoverage:
+    def __init__(self):
+        self.opcodes_seen = set()
+        self.addressing_modes = set()
+        self.register_combinations = set()
+    
+    def record_instruction(self, instruction):
+        opcode = instruction & 0x7F
+        self.opcodes_seen.add(opcode)
+        
+        # Record other aspects
+        self.record_addressing_mode(instruction)
+        self.record_register_usage(instruction)
+    
+    def coverage_report(self):
+        total_opcodes = len(RISC_V_OPCODES)
+        covered_opcodes = len(self.opcodes_seen)
+        
+        coverage_percent = (covered_opcodes / total_opcodes) * 100
+        
+        logger.info(f"Opcode coverage: {coverage_percent:.1f}%")
+        
+        missing_opcodes = RISC_V_OPCODES - self.opcodes_seen
+        if missing_opcodes:
+            logger.warning(f"Untested opcodes: {missing_opcodes}")
+```
+
+## Conclusion
+
+Comprehensive testing is essential for custom CPU development. Our multi-layered approach catches bugs early and gives confidence that the design works correctly. Key takeaways:
+
+- **Start with unit tests**: Test individual modules thoroughly
+- **Build up complexity**: Add integration and system tests gradually  
+- **Automate everything**: Use CI/CD to catch regressions quickly
+- **Measure coverage**: Ensure tests actually exercise the design
+- **Use real workloads**: Test with actual programs and operating systems
+
+The investment in testing infrastructure pays dividends throughout the project lifecycle, enabling rapid iteration while maintaining quality.
+
+## Resources
+
+- [Mrav CPU GitHub Repository](https://github.com/yourusername/mrav-cpu)
+- [Cocotb Documentation](https://docs.cocotb.org/)
+- [Verilator User Guide](https://verilator.org/guide/latest/)
+- [RISC-V Compliance Tests](https://github.com/riscv-non-isa/riscv-arch-test)
+
+---
+
+*Questions about CPU testing or simulation? Feel free to reach out via the social links below.*
