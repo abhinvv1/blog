@@ -8,9 +8,10 @@ const nextConfig = {
     domains: ['localhost'],
     formats: ['image/webp', 'image/avif'],
   },
-  // Removed output: 'export' to enable API routes for comment system
+  // Removed output: 'export' because we have API routes
   trailingSlash: true,
   skipTrailingSlashRedirect: true,
+  // Prevent Node.js modules from being bundled on client-side
   webpack: (config, { isServer }) => {
     if (!isServer) {
       config.resolve.fallback = {
