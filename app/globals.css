@@ -97,7 +97,7 @@
   }
   
   .light .nav-link {
-    @apply text-slate-600 hover:text-primary-600;
+    @apply text-slate-100 hover:text-primary-600;
   }
   
   .nav-link.active {
@@ -168,36 +168,57 @@
 
 /* Utility styles */
 @layer utilities {
-  .text-gradient {
-    @apply bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-text text-transparent;
+  /* Better text contrast for light mode */
+  .light .prose {
+    color: rgb(15 23 42) !important; /* slate-900 for main content */
   }
   
-  .border-gradient {
-    @apply border border-transparent bg-gradient-to-r from-primary-500 to-primary-400 bg-clip-border;
+  .light .prose p {
+    color: rgb(15 23 42) !important; /* slate-900 for paragraphs */
   }
   
-  /* Theme-specific text colors */
-  .text-muted {
-    @apply transition-colors duration-200;
+  .light .prose li {
+    color: rgb(15 23 42) !important; /* slate-900 for list items */
   }
   
-  .dark .text-muted {
-    @apply text-dark-400;
+  .light .prose blockquote {
+    color: rgb(30 41 59) !important; /* slate-800 for quotes */
   }
   
-  .light .text-muted {
-    @apply text-slate-600;
+  /* Post content text in light mode */
+  .light .prose-invert {
+    color: rgb(15 23 42) !important;
   }
   
-  .text-subtle {
-    @apply transition-colors duration-200;
+  /* Ensure all paragraph text is dark enough */
+  .light p:not(.text-muted):not(.text-subtle) {
+    color: rgb(15 23 42) !important; /* slate-900 */
   }
   
-  .dark .text-subtle {
-    @apply text-dark-500;
+  /* Post description text */
+  .light .text-dark-300 {
+    color: rgb(15 23 42) !important; /* Override to slate-900 in light mode */
   }
   
-  .light .text-subtle {
-    @apply text-slate-500;
+  /* General content text */
+  .light .dark\\:text-dark-300 {
+    color: rgb(15 23 42) !important; /* slate-900 for better readability */
+  }
+  
+  /* Bold text fixes for light mode */
+  .light .prose strong {
+    color: rgb(15 23 42) !important; /* slate-900 for bold text */
+  }
+  
+  .light .prose b {
+    color: rgb(15 23 42) !important; /* slate-900 for bold text */
+  }
+  
+  .light strong {
+    color: rgb(15 23 42) !important; /* slate-900 for any bold text */
+  }
+  
+  .light b {
+    color: rgb(15 23 42) !important; /* slate-900 for any bold text */
   }
 }

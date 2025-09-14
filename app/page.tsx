@@ -24,7 +24,7 @@ export default function HomePage() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
           <Link
             href="/posts"
-            className="btn-primary inline-flex items-center space-x-2"
+            className="btn-primary inline-flex items-center space-x-2 !text-black"
           >
             <span>Read my posts</span>
             <ArrowRight className="h-4 w-4" />
@@ -80,7 +80,7 @@ export default function HomePage() {
                       {post.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="inline-flex items-center space-x-1 text-xs bg-dark-800 text-dark-300 px-2 py-1 rounded-md"
+                          className="inline-flex items-center space-x-1 text-xs bg-dark-800 text-light-300 px-2 py-1 rounded-md"
                         >
                           <Tag className="h-3 w-3" />
                           <span>{tag}</span>
@@ -138,7 +138,7 @@ export default function HomePage() {
                         <Link
                           key={tag}
                           href={`/tags?tag=${encodeURIComponent(tag)}`}
-                          className="text-xs bg-dark-800 text-dark-300 hover:bg-dark-700 hover:text-primary-500 px-2 py-1 rounded-md transition-colors duration-200"
+                          className="text-xs bg-dark-800 text-light-300 hover:bg-dark-700 hover:text-primary-500 px-2 py-1 rounded-md transition-colors duration-200"
                         >
                           #{tag}
                         </Link>
@@ -198,7 +198,7 @@ export default function HomePage() {
                     {project.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
-                        className="text-xs bg-dark-800 text-dark-300 px-2 py-1 rounded-md"
+                        className="text-xs bg-dark-800 text-white px-2 py-1 rounded-md"
                       >
                         {tag}
                       </span>

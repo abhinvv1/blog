@@ -152,7 +152,7 @@ export default function PostPage({ params }: PostPageProps) {
                   <Link
                     key={tag}
                     href={`/tags?tag=${encodeURIComponent(tag)}`}
-                    className="inline-flex items-center space-x-1 text-sm bg-dark-800 text-dark-300 hover:bg-dark-700 hover:text-primary-500 px-3 py-2 rounded-md transition-colors duration-200"
+                    className="inline-flex items-center space-x-1 text-sm bg-dark-800 text-light-300 hover:bg-dark-700 hover:text-primary-500 px-3 py-2 rounded-md transition-colors duration-200"
                   >
                     <Tag className="h-3 w-3" />
                     <span>{tag}</span>

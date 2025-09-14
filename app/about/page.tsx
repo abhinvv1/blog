@@ -18,7 +18,7 @@ export default function AboutPage() {
       </nav>
 
       {/* Page Title */}
-      <h1 className="text-4xl font-bold text-dark-100 mb-8">About</h1>
+      <h1 className="text-4xl font-bold text-dark-400 mb-8">About</h1>
 
       {/* Introduction */}
       <div className="space-y-6 text-dark-300 leading-relaxed">
@@ -27,10 +27,9 @@ export default function AboutPage() {
         </p>
 
         <p>
-          My name is {siteConfig.author.name}. I am currently employed as a Staff Software 
-          Engineer at Google, working on Google Cloud Applied AI. I have also 
-          previously worked in engineering positions at places like Meta, Microsoft 
-          and Google's X, the moonshot factory.
+          My name is {siteConfig.author.name}. I am currently employed as a Software 
+          Engineer at BrowserStack, working on App Automation testing and AI. I have also 
+          previously worked in engineering positions at places like Practo and Amazon.
         </p>
 
         <p>
@@ -41,7 +40,7 @@ export default function AboutPage() {
 
         {/* Technical Details */}
         <div className="mt-12 p-6 bg-dark-800 border border-dark-700 rounded-lg">
-          <p className="text-sm text-dark-400 italic">
+          <p className="text-sm italic text-white dark:text-white light:text-white">
             This website has been built with{' '}
             <a 
               href="https://nextjs.org" 

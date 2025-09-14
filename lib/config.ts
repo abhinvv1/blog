@@ -1,15 +1,15 @@
 import { SiteConfig } from '@/types';
 
 export const siteConfig: SiteConfig = {
-  name: "Your Name", // Replace with your actual name
-  description: "Personal blog and portfolio - sharing thoughts on technology, programming, and software engineering.",
-  url: "https://yourdomain.com", // Replace with your actual domain
+  name: "Abhinav",
+  description: "Blog and portfolio - sharing thoughts on technology, programming, and software engineering.",
+  url: "https://blog-sandy-pi-45.vercel.app/",
   author: {
-    name: "Your Name", // Replace with your actual name
-    email: "your.email@example.com", // Replace with your actual email
-    twitter: "yourusername", // Replace with your Twitter username (optional)
-    github: "yourusername", // Replace with your GitHub username
-    linkedin: "yourusername", // Replace with your LinkedIn username (optional)
+    name: "Abhinav",
+    email: "abhinav.1e4@gmail.com",
+    twitter: "pixelcaliber",
+    github: "pixelcaliber",
+    linkedin: "abhinav-pandey",
   },
   nav: [
     {
@@ -32,22 +32,22 @@ export const siteConfig: SiteConfig = {
   socialLinks: [
     {
       name: "GitHub",
-      url: "https://github.com/yourusername", // Replace with your GitHub URL
+      url: "https://github.com/pixelcaliber",
       icon: "github",
     },
     {
       name: "LinkedIn", 
-      url: "https://linkedin.com/in/yourusername", // Replace with your LinkedIn URL
+      url: "https://www.linkedin.com/in/abhinav-pandey-487989215",
       icon: "linkedin",
     },
     {
       name: "Twitter",
-      url: "https://twitter.com/yourusername", // Replace with your Twitter URL
+      url: "https://twitter.com/pixelcaliber",
       icon: "twitter",
     },
     {
       name: "Reddit",
-      url: "https://reddit.com/u/yourusername", // Replace with your Reddit URL
+      url: "https://reddit.com/u/pixelcaliber",
       icon: "reddit",
     },
   ],

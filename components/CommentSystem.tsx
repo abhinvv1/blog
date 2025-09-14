@@ -148,7 +148,7 @@ export function CommentSystem({ postSlug }: CommentSystemProps) {
           
           <div className="flex-1">
             <div className="flex items-center space-x-2 mb-2">
-              <span className="font-medium text-sm dark:text-dark-200 light:text-slate-900">
+              <span className="font-medium text-sm dark:text-dark-500">
                 {comment.author}
               </span>
               {comment.isAnonymous && (
@@ -162,7 +162,7 @@ export function CommentSystem({ postSlug }: CommentSystemProps) {
               </span>
             </div>
             
-            <p className="text-sm dark:text-dark-300 light:text-slate-700 leading-relaxed mb-3">
+            <p className="text-sm dark:text-dark-300 light:text-slate-800 leading-relaxed mb-3">
               {comment.content}
             </p>
             
@@ -271,7 +271,7 @@ export function CommentSystem({ postSlug }: CommentSystemProps) {
           {!isAnonymous && (
             <div>
               <label htmlFor="author" className="block text-sm font-medium mb-2 dark:text-dark-300 light:text-slate-700">
-                Your Name
+                Abhinav Pandey
               </label>
               <input
                 id="author"

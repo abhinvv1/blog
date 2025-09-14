@@ -66,7 +66,7 @@ export function Footer() {
             Deployed on Vercel.
             <span className="mx-2">•</span>
             <Link 
-              href="https://github.com/yourusername/blog-website" // Replace with your repo URL
+              href="https://github.com/abhinvv1/blog" // Replace with your repo URL
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-primary-500 transition-colors duration-200"
