@@ -18,6 +18,11 @@ export const metadata: Metadata = {
   authors: [{ name: siteConfig.author.name, url: siteConfig.url }],
   creator: siteConfig.author.name,
   metadataBase: new URL(siteConfig.url),
+  icons: {
+    icon: '/images/favicon.png',
+    shortcut: '/images/favicon.png',
+    apple: '/images/favicon.png',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',

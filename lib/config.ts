@@ -1,7 +1,7 @@
 import { SiteConfig } from '@/types';
 
 export const siteConfig: SiteConfig = {
-  name: "Abhinav",
+  name: "Pixel Caliber",
   description: "Blog and portfolio - sharing thoughts on technology, programming, and software engineering.",
   url: "https://blog-sandy-pi-45.vercel.app/",
   author: {
