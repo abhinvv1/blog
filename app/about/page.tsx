@@ -39,7 +39,7 @@ export default function AboutPage() {
         </p>
 
         {/* Technical Details */}
-        <div className="mt-12 p-6 bg-dark-800 border border-dark-700 rounded-lg">
+        {/* <div className="mt-12 p-6 bg-dark-800 border border-dark-700 rounded-lg">
           <p className="text-sm italic text-white dark:text-white light:text-white">
             This website has been built with{' '}
             <a 
@@ -61,7 +61,7 @@ export default function AboutPage() {
             </a>{' '}
             framework for styling. Content is written in MDX format for rich formatting capabilities.
           </p>
-        </div>
+        </div> */}
 
         {/* Contact Info */}
         <div className="mt-12 pt-8 border-t border-dark-700">
