@@ -1,495 +1,280 @@
 ---
-title: "Custom CPU simulation and testing"
-description: "Walkthrough for how the Mrav CPU project handles RTL simulation and other testing aspects."
+title: "How to Scale to 20 million+ Users on AWS?"
+description: "The Scaling Ladder: From 1 to 20 Million Users on AWS"
 date: "2025-09-07"
-tags: ["CPU Design", "RTL", "SystemVerilog", "Testing", "Simulation", "Hardware"]
+tags: ["System Design", "AWS", "Cloud", "Scalability"]
 published: true
 featured: false
-author: "Your Name"
+author: "Abhinav Pandey"
 ---
+# How to Scale to 20 million+ Users on AWS?
 
-# Custom CPU simulation and testing
+## The Scaling Ladder: From 1 to 20 Million Users on AWS
 
-Building a custom CPU is one thing, but ensuring it works correctly is another challenge entirely. In this post, I'll walk through the comprehensive testing and simulation strategy used in the Mrav CPU project, covering everything from unit tests to full system simulation.
+### Overview
+In this article we are going to talk about scaling your application infrastructure from 1 user to more than 20 million+ users. Whether you are new to cloud computing or seeking to understand the nuances of AWS services, this guide will provide valuable insights. While the focus is on AWS, the core principles of scalability, reliability, and performance are universally applicable across any cloud provider.  
 
-## Testing Philosophy
+Joel Williams, Amazon Web Services Solutions Architect, gave an excellent talk on just that subject: **AWS re:Invent 2015 Scaling Up to Your First 10 Million Users** — this guide is inspired by the foundational concepts discussed in talks.  
 
-When designing custom hardware, testing isn't just important—it's absolutely critical. Unlike software bugs that can be patched with updates, hardware bugs can be extremely expensive to fix once silicon is manufactured. Our testing strategy follows several key principles:
-
-### Verification-Driven Development
-
-- **Test-first approach**: Write tests before implementing features
-- **Continuous validation**: Run tests on every change
-- **Coverage tracking**: Ensure all code paths are exercised
-- **Formal verification**: Use mathematical proofs where possible
-
-### Multi-Level Testing Strategy
-
-1. **Unit tests**: Individual modules and components
-2. **Integration tests**: Interfaces between modules
-3. **System tests**: Complete CPU running real programs
-4. **Performance tests**: Timing and resource utilization
-
-## RTL Simulation Framework
-
-The foundation of our testing strategy is a comprehensive RTL (Register Transfer Level) simulation framework built around industry-standard tools.
-
-### Tool Chain
-
-- **Verilator**: Fast, free SystemVerilog simulator
-- **GTKWave**: Waveform viewer for debugging
-- **Cocotb**: Python-based testbench framework
-- **Coverage tools**: Code and functional coverage analysis
-
-### Project Structure
-
-```
-mrav-cpu/
-├── rtl/               # SystemVerilog source files
-├── tb/                # Testbench files
-│   ├── unit/          # Unit tests
-│   ├── integration/   # Integration tests
-│   └── system/        # System-level tests
-├── tools/             # Testing utilities
-└── sim/               # Simulation outputs
-```
-
-## Unit Testing Strategy
-
-Every major module in the CPU has dedicated unit tests that exercise all functionality in isolation.
-
-### ALU Testing
-
-The Arithmetic Logic Unit (ALU) is one of the most critical components:
-
-```python
-# Example ALU test using Cocotb
-@cocotb.test()
-async def test_alu_add(dut):
-    """Test ALU addition operation"""
-    
-    # Test data
-    test_cases = [
-        (0x12345678, 0x87654321, 0x99999999),
-        (0xFFFFFFFF, 0x00000001, 0x00000000),  # Overflow
-        (0x80000000, 0x80000000, 0x00000000),  # Signed overflow
-    ]
-    
-    for a, b, expected in test_cases:
-        dut.alu_op.value = ALU_OP_ADD
-        dut.operand_a.value = a
-        dut.operand_b.value = b
-        
-        await Timer(1, units='ns')
-        
-        assert dut.result.value == expected
-        assert dut.flags.value.zero == (expected == 0)
-```
-
-### Memory Controller Testing
-
-The memory controller requires careful testing of timing and protocol compliance:
-
-```python
-@cocotb.test()
-async def test_memory_read_cycle(dut):
-    """Test memory read timing"""
-    
-    # Initialize
-    dut.mem_read.value = 0
-    dut.address.value = 0x1000
-    await RisingEdge(dut.clk)
-    
-    # Start read cycle
-    dut.mem_read.value = 1
-    await RisingEdge(dut.clk)
-    
-    # Check address is stable
-    assert dut.mem_addr.value == 0x1000
-    assert dut.mem_en.value == 1
-    
-    # Wait for data ready
-    await FallingEdge(dut.mem_ready)
-    
-    # Verify data latched correctly
-    expected_data = 0xDEADBEEF
-    dut.mem_data_in.value = expected_data
-    await RisingEdge(dut.clk)
-    
-    assert dut.data_out.value == expected_data
-```
-
-## Integration Testing
-
-Integration tests verify that multiple modules work correctly together.
-
-### CPU Core Integration
-
-Testing the complete CPU core with realistic instruction sequences:
-
-```python
-@cocotb.test()
-async def test_pipeline_hazards(dut):
-    """Test pipeline hazard detection and resolution"""
-    
-    # Load program with data hazards
-    program = [
-        0x00100093,  # addi x1, x0, 1
-        0x00200113,  # addi x2, x0, 2  
-        0x002081B3,  # add x3, x1, x2   # RAW hazard on x1, x2
-        0x003101B3,  # add x3, x2, x3   # RAW hazard on x3
-    ]
-    
-    await load_program(dut, program)
-    await reset_cpu(dut)
-    
-    # Execute and verify forwarding works
-    for cycle in range(10):
-        await RisingEdge(dut.clk)
-        
-        # Check pipeline stages
-        if dut.pipeline.decode.valid.value:
-            log_instruction(dut.pipeline.decode.instruction.value)
-        
-        # Verify hazard detection
-        if dut.hazard_unit.stall.value:
-            logger.info(f"Stall detected at cycle {cycle}")
-    
-    # Verify final register values
-    assert dut.register_file.regs[3].value == 3  # x3 = x1 + x2 = 1 + 2
-```
-
-### Cache Testing
-
-Cache coherency and performance testing:
-
-```python
-@cocotb.test()
-async def test_cache_miss_handling(dut):
-    """Test cache miss and refill logic"""
-    
-    # Clear cache
-    await flush_cache(dut)
-    
-    # Access data not in cache
-    address = 0x2000
-    await memory_read(dut, address)
-    
-    # Verify cache miss detected
-    assert dut.cache.miss.value == 1
-    
-    # Wait for memory fetch
-    await wait_for_memory_ready(dut)
-    
-    # Verify data loaded into cache
-    cache_line = get_cache_line(dut, address)
-    assert cache_line.valid == 1
-    assert cache_line.tag == get_tag(address)
-    
-    # Subsequent access should hit
-    await memory_read(dut, address)
-    assert dut.cache.hit.value == 1
-```
-
-## System-Level Testing
-
-System tests run complete programs and verify correct execution from start to finish.
-
-### Instruction Set Architecture (ISA) Testing
-
-We run the official RISC-V compliance tests to ensure ISA compatibility:
-
-```python
-@cocotb.test()
-async def test_riscv_compliance(dut):
-    """Run RISC-V compliance test suite"""
-    
-    test_programs = [
-        "rv32i-p-add",
-        "rv32i-p-addi", 
-        "rv32i-p-and",
-        "rv32i-p-andi",
-        # ... more tests
-    ]
-    
-    for test_name in test_programs:
-        logger.info(f"Running test: {test_name}")
-        
-        # Load test program
-        program = load_test_program(test_name)
-        await load_program(dut, program)
-        
-        # Run until completion
-        await run_until_halt(dut)
-        
-        # Check test results
-        result = get_test_result(dut)
-        assert result == TEST_PASS, f"Test {test_name} failed"
-```
-
-### Operating System Boot Testing
-
-Testing ability to boot a real operating system:
-
-```python
-@cocotb.test()
-async def test_linux_boot(dut):
-    """Test booting Linux kernel"""
-    
-    # Load bootloader
-    bootloader = load_binary("bootloader.bin")
-    await load_program(dut, bootloader, address=0x80000000)
-    
-    # Load kernel image  
-    kernel = load_binary("vmlinux")
-    await load_program(dut, kernel, address=0x80200000)
-    
-    # Load device tree
-    dtb = load_binary("system.dtb")
-    await load_program(dut, dtb, address=0x82000000)
-    
-    # Start execution
-    dut.pc.value = 0x80000000
-    await run_for_cycles(dut, 1000000)
-    
-    # Look for kernel boot messages
-    uart_output = get_uart_output(dut)
-    assert "Linux version" in uart_output
-    assert "Kernel command line:" in uart_output
-```
-
-## Performance Testing
-
-Beyond functional correctness, we also test performance characteristics.
-
-### Benchmark Execution
-
-Running standard benchmarks to measure performance:
-
-```python
-@cocotb.test()
-async def test_dhrystone_benchmark(dut):
-    """Run Dhrystone performance benchmark"""
-    
-    # Load Dhrystone executable
-    dhrystone = load_elf("dhrystone.elf")
-    await load_program(dut, dhrystone)
-    
-    # Measure execution time
-    start_cycles = dut.cycle_count.value
-    await run_until_halt(dut)
-    end_cycles = dut.cycle_count.value
-    
-    total_cycles = end_cycles - start_cycles
-    
-    # Calculate performance metrics
-    frequency = 100e6  # 100 MHz
-    execution_time = total_cycles / frequency
-    dhrystones_per_second = DHRYSTONE_LOOPS / execution_time
-    
-    logger.info(f"Dhrystone performance: {dhrystones_per_second:.0f} DMIPS")
-    
-    # Verify performance meets targets
-    assert dhrystones_per_second >= TARGET_DMIPS
-```
-
-### Cache Performance Analysis
-
-Analyzing cache hit rates and memory access patterns:
-
-```python
-@cocotb.test()
-async def test_cache_performance(dut):
-    """Analyze cache performance metrics"""
-    
-    # Run memory-intensive workload
-    workload = generate_memory_workload()
-    await run_workload(dut, workload)
-    
-    # Collect cache statistics
-    total_accesses = dut.cache.total_accesses.value
-    cache_hits = dut.cache.hits.value
-    cache_misses = dut.cache.misses.value
-    
-    hit_rate = cache_hits / total_accesses
-    miss_rate = cache_misses / total_accesses
-    
-    logger.info(f"Cache hit rate: {hit_rate*100:.1f}%")
-    logger.info(f"Cache miss rate: {miss_rate*100:.1f}%")
-    
-    # Verify performance targets
-    assert hit_rate >= TARGET_HIT_RATE
-```
-
-## Continuous Integration
-
-All tests run automatically on every code change using GitHub Actions:
-
-```yaml
-name: RTL Testing
-on: [push, pull_request]
-
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install verilator gtkwave
-          pip install cocotb
-      
-      - name: Run unit tests
-        run: make test-unit
-        
-      - name: Run integration tests  
-        run: make test-integration
-        
-      - name: Run system tests
-        run: make test-system
-        
-      - name: Generate coverage report
-        run: make coverage
-        
-      - name: Upload results
-        uses: actions/upload-artifact@v2
-        with:
-          name: test-results
-          path: sim/results/
-```
-
-## Debug and Analysis Tools
-
-### Waveform Analysis
-
-GTKWave integration for visual debugging:
-
-```python
-def save_waveform(dut):
-    """Save simulation waveform for analysis"""
-    
-    with dut.monitor_signals([
-        "clk",
-        "reset", 
-        "pc",
-        "instruction",
-        "register_file.regs",
-        "pipeline.fetch.valid",
-        "pipeline.decode.valid", 
-        "pipeline.execute.valid",
-        "pipeline.memory.valid",
-        "pipeline.writeback.valid",
-    ]) as signals:
-        # Simulation runs here
-        pass
-    
-    # Waveform automatically saved to sim.vcd
-```
-
-### Performance Profiling
-
-Built-in performance counters for analysis:
-
-```python
-def analyze_performance(dut):
-    """Analyze CPU performance metrics"""
-    
-    metrics = {
-        'instructions_retired': dut.perf.instructions.value,
-        'cycles_executed': dut.perf.cycles.value,  
-        'cache_hits': dut.perf.cache_hits.value,
-        'cache_misses': dut.perf.cache_misses.value,
-        'branch_predictions': dut.perf.branch_pred.value,
-        'branch_mispredictions': dut.perf.branch_miss.value,
-    }
-    
-    # Calculate derived metrics
-    ipc = metrics['instructions_retired'] / metrics['cycles_executed']
-    hit_rate = metrics['cache_hits'] / (metrics['cache_hits'] + metrics['cache_misses'])
-    branch_accuracy = metrics['branch_predictions'] / (metrics['branch_predictions'] + metrics['branch_mispredictions'])
-    
-    logger.info(f"Instructions per cycle: {ipc:.2f}")
-    logger.info(f"Cache hit rate: {hit_rate*100:.1f}%") 
-    logger.info(f"Branch prediction accuracy: {branch_accuracy*100:.1f}%")
-    
-    return metrics
-```
-
-## Coverage Analysis
-
-We track both code coverage and functional coverage to ensure thorough testing.
-
-### Code Coverage
-
-Measuring which RTL code has been exercised:
-
-```bash
-# Generate coverage database
-verilator --coverage --trace coverage.cpp mrav_cpu.sv
-
-# Run tests with coverage
-./coverage_test
-
-# Generate coverage report  
-verilator_coverage --annotate coverage/ coverage.dat
-
-# View results
-firefox coverage/index.html
-```
-
-### Functional Coverage
-
-Ensuring all features and corner cases are tested:
-
-```python
-class InstructionCoverage:
-    def __init__(self):
-        self.opcodes_seen = set()
-        self.addressing_modes = set()
-        self.register_combinations = set()
-    
-    def record_instruction(self, instruction):
-        opcode = instruction & 0x7F
-        self.opcodes_seen.add(opcode)
-        
-        # Record other aspects
-        self.record_addressing_mode(instruction)
-        self.record_register_usage(instruction)
-    
-    def coverage_report(self):
-        total_opcodes = len(RISC_V_OPCODES)
-        covered_opcodes = len(self.opcodes_seen)
-        
-        coverage_percent = (covered_opcodes / total_opcodes) * 100
-        
-        logger.info(f"Opcode coverage: {coverage_percent:.1f}%")
-        
-        missing_opcodes = RISC_V_OPCODES - self.opcodes_seen
-        if missing_opcodes:
-            logger.warning(f"Untested opcodes: {missing_opcodes}")
-```
-
-## Conclusion
-
-Comprehensive testing is essential for custom CPU development. Our multi-layered approach catches bugs early and gives confidence that the design works correctly. Key takeaways:
-
-- **Start with unit tests**: Test individual modules thoroughly
-- **Build up complexity**: Add integration and system tests gradually  
-- **Automate everything**: Use CI/CD to catch regressions quickly
-- **Measure coverage**: Ensure tests actually exercise the design
-- **Use real workloads**: Test with actual programs and operating systems
-
-The investment in testing infrastructure pays dividends throughout the project lifecycle, enabling rapid iteration while maintaining quality.
-
-## Resources
-
-- [Mrav CPU GitHub Repository](https://github.com/abhinvv1/mrav-cpu)
-- [Cocotb Documentation](https://docs.cocotb.org/)
-- [Verilator User Guide](https://verilator.org/guide/latest/)
-- [RISC-V Compliance Tests](https://github.com/riscv-non-isa/riscv-arch-test)
+Let's start with basics of AWS first.
 
 ---
 
-*Questions about CPU testing or simulation? Feel free to reach out via the social links below.*
+## Basics of AWS
+AWS operates on a global infrastructure model with three key layers:  
+
+- **Regions → Availability Zones → Edge Locations**
+
+### Regions
+- Regions are geographically isolated areas containing multiple data centers.  
+- The purpose is to provide data sovereignty, latency reduction, disaster recovery.  
+- Each region operates independently with its own power grid, networking, and cooling systems.  
+- As of now in 2025 AWS spans within **37 Geographic Regions**.
+
+### Availability Zones (AZs)
+- AZs are physically separated data centers within a region (typically 3–6 per region). They are generally a single datacenter but could also be constructed by more than one within a region.  
+- AZs provide isolated failure domains (separate power, networking, facilities).  
+- Currently in 2025 there are **117 Availability Zones** in total.  
+- Each AZ is separate enough and they are operated separately in terms of power, internet connectivity and other resources.  
+- The only connection between AZs is a low latency network. AZs can be 5 or 100 miles apart. But network between them is fast enough to feel like they are almost next to each other and they act like they are in same datacenter.  
+- Each region has at least two AZ. The upper limit could be more than that.  
+- We'll see how using AZs it's possible to create a high availability architecture for your application.  
+- Another feature within AZs is their ability to synchronous replicate data, which is highly useful and we'll leverage in future as well.
+
+### Edge Locations
+- AWS has 100s of edge locations around the world.  
+- An Edge location is used by **CloudFront**, Amazon's Content Distribution Network (CDN) and **Route53**, Amazon's managed DNS server.  
+- An Edge location enables users to access content with a very low latency no matter where they are in the world.
+
+---
+
+## Building Block Services for users:
+
+### Multi-AZ Deployment:
+
+Region: us-east-1
+|── AZ-1a: Primary DB, Load Balancer
+|── AZ-1b: Standby DB, App Servers
+|── AZ-1c: App Servers, Cache Layer
+
+
+
+AWS has created a number of services that use multiple AZs internally to be highly available and fault tolerant.  
+This way we can directly use them without having us to manage their availability and robustness.  
+
+A highly scalable architecture can be created using services even though they exist within a single AZ.
+
+---
+
+## From a Single User to Your First Thousand
+
+### 1 User: A Humble Beginning
+In this scenario you are the only user and you want the website to keep running. Your architecture will look something like this:  
+
+- Run on a single instance maybe a type **t2.micro**. Instance type comprise varying combinations of CPU, memory, storage and networking capacity and it give us the flexibility to choose the appropriate mix of resources for your application based on our need.  
+- The one instance would run the entire application. For eg: web application, database, etc.  
+- To expose the application to end users we can use **Amazon Route 53** as DNS.
+
+---
+
+### The First Scaling Challenge: Vertical Scaling
+A time will come when you will need a bigger box. Simplest approach to scaling is choose a larger instance type. Maybe a **c4.8xlarge** or **m3.2xlarge**, for example. Now, this approach is called **vertical scaling**.
+
+How it works:  
+- You simply increase the size and power of your EC2 instance.  
+- This involves stopping the instance, selecting a more powerful instance type (e.g., from a t2.micro to an m5.large), and restarting it.  
+- There is a wide mix of different hardware configurations to choose from. You can have a system with 244 gigs of RAM. Or one with 40 cores. There are High I/O instances, High CPU Instances, High storage instances.  
+- Some Amazon services come with a Provisioned IOPS option to guarantee performance. The idea is you can perhaps use a smaller instance type for your service and make use of Amazon services like DynamoDB that can deliver scalable services so you don't have to.
+
+But vertical scaling has a big problem:  
+- there's no failover, no redundancy. If the instance has a problem your website will die. All your eggs are in one basket.  
+- Eventually a single instance can only get so big. You need to do something else.
+
+---
+
+### Growing Pains: Decoupling the Database (10+ Users)
+Now it's time to separate out a single host into multiple hosts:
+
+- One host for the website and another host for the database.  
+- Run any database you want, but you are on the hook for the database administration.  
+- Using separate hosts allows the web site and the database to be scaled independently of each other.  
+- Perhaps your database will need a bigger machine than your web site, for example.  
+- Or instead of running your own database you could use a database service.  
+
+👉 If you are a database admin and are afraid of backups and availability you can use a database service instead.  
+
+A big advantage of using a service is you can have a **multi-AZ database setup with a single click**. You won't have to worry about replication or any of that sort of thing. Your database will be highly available and reliable.  
+
+Amazon has several fully managed database services, and **Amazon RDS (Relational Database Service)** is the most popular one.  
+
+- Start with a **SQL database** instead of a NoSQL database.  
+- The suggestion is to start with a SQL database because the technology is established. There's lots of existing code, communities, support groups, books, and tools. You aren't going to break a SQL database with your first 10 million users. Not even close. (unless your data is huge).  
+- With SQL there are clear patterns to scalability and it is extremely good when you have relational data.  
+
+When might you need to start with a **NoSQL database**?  
+- If you need to store > 5 TB of data in year one.  
+- If you have an incredibly data intensive workload.  
+- If your application has super low-latency requirements and really high throughput (e.g., a chat application might use Cassandra).  
+- If you need to really tweak the IOs on reads/writes.  
+- Another use case is if you strictly don't have any relational data.
+
+---
+
+### Users > 100
+- Use a separate host for the web tier.  
+- Move the database on **Amazon RDS**. It takes care of everything and you don't need to worry.  
+- Moving to RDS at this stage will allow us to spend our energy on rolling new updates for our application without worrying much about the database.
+
+---
+
+### Users > 1000
+Currently your application has availability issues. If the host for your web service fails then your web site goes down — very bad first impression.  
+
+- A single instance for your web tier is a **single point of failure**.  
+- You need another web instance in another Availability Zone.  
+- Latency between AZs is in the low single digit milliseconds, almost like they are right next to each other.  
+
+#### Multi-AZ Deployment:
+- Deploy at least two web server instances in separate AZs.  
+
+#### Database Tier:
+- Configure RDS for a **Multi-AZ deployment**.  
+- With a single click, RDS will provision and maintain a synchronous standby replica in a different AZ.  
+- In case of a primary database failure, RDS automatically fails over to the standby replica.  
+- Your application continues to function using the same database endpoint.  
+
+#### Elastic Load Balancer (ELB)
+- ELB is a highly available managed load balancer.  
+- The ELB exists in all AZs.  
+- It's a single DNS endpoint for your application. Just put it in Route 53 and it will load balance across your web host instances.  
+- The ELB has Health Checks that make sure traffic doesn't flow to failed hosts.  
+- It scales without your doing anything. If it sees additional traffic it scales behind the scenes both horizontally and vertically.  
+
+---
+
+### Offloading for Performance — Users > 10,000s – 100,000s
+As traffic increases, you need to optimize performance by reducing the load on your web servers and database.  
+
+- Currently you have at least 2 instances behind the ELB, in practice you can have 1000s of instances behind the ELB (**horizontal scaling**).  
+- Add more **read replicas to the database** in RDS to take load off the write master.  
+- Move static content in your web app to **Amazon S3** and **Amazon CloudFront**.  
+- S3 is an object store, not a block store — great for static content (JS, CSS, images, videos).  
+- CloudFront caches content at edge locations (53+ globally).  
+
+Other techniques:  
+- Shift session state off your web tier (to **ElastiCache** or **DynamoDB**).  
+- Cache data from your DB into ElastiCache to reduce load.  
+
+#### Amazon ElastiCache
+- Managed Memcached or Redis.  
+- Self-healing infrastructure, auto scaling.  
+- Crucial for 10–100k users.
+
+---
+
+### Automating Scalability: Auto Scaling
+If you provision enough capacity to always handle your peak traffic load, you are wasting money.  
+
+- Auto Scaling lets you **match compute power with demand**.  
+- Define min and max pool size.  
+- **CloudWatch** metrics drive scaling (CPU, latency, network traffic, custom metrics).  
+
+---
+
+## A Robust Architecture for Users > 500,000+
+At this stage:  
+- Architecture should be highly available, scalable, and observable.  
+- Auto scaling groups on the web tier (across 2–3 AZs, up to thousands of instances).  
+- ElastiCache and DynamoDB are critical for offloading DB.  
+- Add monitoring, metrics and logging (**CloudWatch, CloudTrail**).  
+- End-User Experience Monitoring (New Relic, Pingdom).  
+
+---
+
+## Embracing Automation and Decoupling
+Manual management becomes impractical.  
+
+### Infrastructure as Code (IaC)
+- **AWS CloudFormation** (JSON/YAML templates).  
+- **AWS Elastic Beanstalk** (PaaS).  
+- **AWS OpsWorks** (Chef/Puppet).  
+- **AWS CodeDeploy** (fleet deployments, integrates with Auto Scaling, Chef, Puppet).  
+
+### Decoupling with Microservices and Queues
+- Break monolith into **SOA/Microservices**.  
+- Use **Amazon SQS** for message queues.  
+- Use **AWS Lambda** for event-driven serverless compute (S3 triggers, queue triggers).  
+
+---
+
+## Don't Reinvent the Wheel
+Only invest in tasks that differentiate you as a business.  
+
+- Many AWS services are inherently fault tolerant (queuing, email, transcoding, search, databases, monitoring, metrics, logging, compute).  
+- Don't build them yourself unless necessary.
+
+---
+
+## Users > 1,000,000+
+Reaching a million users requires:  
+
+- Multi-AZ  
+- Elastic Load Balancing (all tiers)  
+- Auto Scaling  
+- SOA  
+- Serve content smartly with S3 + CloudFront  
+- Cache in front of DB  
+- Move state off web tier  
+- Use **Amazon SES** for email  
+- Use **CloudWatch** for monitoring  
+
+---
+
+## Conquering the Database Bottleneck — Users > 10,000,000+
+At this scale, primary bottleneck = write capacity of master DB.  
+
+### Strategies:
+#### Federation
+- Split DB by function (Forums DB, User DB, Products DB).  
+- Scales independently, but no cross-DB queries.  
+
+#### Sharding
+- Split dataset across multiple hosts.  
+- Application-layer complexity.  
+- No practical scalability limit.  
+
+#### Other DB Types
+- Move workloads to NoSQL, Graph, etc.  
+- Great for clickstream/logs, leaderboards, hot tables, metadata/lookup tables.  
+
+---
+
+## The Road to 20 Million Users and Beyond
+Scaling is continuous.  
+
+- Fine tune application.  
+- More SOA features.  
+- From Multi-AZ → Multi-region.  
+- Build custom solutions for unique problems.  
+- Deep analysis of full stack.  
+
+---
+
+## In Summary: Key Principles for Scalable Architectures
+- Use a multi-AZ infrastructure for reliability.  
+- Make use of self-scaling services (ELB, S3, SQS, SNS, DynamoDB).  
+- Build redundancy at every level.  
+- Start with a traditional relational SQL database.  
+- Cache data both inside and outside infra.  
+- Use IaC + automation tools.  
+- Have good metrics/monitoring/logging.  
+- Split tiers into SOA for independent scaling/failure.  
+- Use Auto Scaling when ready.  
+- Don't reinvent the wheel — use managed services.  
+- Move to NoSQL if and when it makes sense.  
+
+---
+
+We have now discussed steps for scaling web applications to millions of users all using AWS. By following these principles and progressively evolving your architecture, you can build a robust and scalable system capable of supporting millions of users.  
+
+**Hope you liked it and had something to learn. Thanks!**
