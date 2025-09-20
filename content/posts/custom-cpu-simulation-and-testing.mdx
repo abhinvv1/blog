@@ -52,11 +52,12 @@ AWS operates on a global infrastructure model with three key layers:
 
 ### Multi-AZ Deployment:
 
+```
 Region: us-east-1
 |── AZ-1a: Primary DB, Load Balancer
 |── AZ-1b: Standby DB, App Servers
 |── AZ-1c: App Servers, Cache Layer
-
+```
 
 
 AWS has created a number of services that use multiple AZs internally to be highly available and fault tolerant.  
