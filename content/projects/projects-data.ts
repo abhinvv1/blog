@@ -129,7 +129,7 @@ export const projects: Project[] = [
   {
     id: "proofread",
     title:
-      "A spell checker using Tries and Optical Character Recognition (OCR)",
+      "ProofRead: A spell checker using Tries and Optical Character Recognition (OCR)",
     description:
       "Data structure project to detect spelling errors using Optical Character Recognition technique, extracting texts from images and then finding spelling errors.",
     url: "https://github.com/pixelcaliber/ProofRead",
@@ -140,7 +140,7 @@ export const projects: Project[] = [
   },
   {
     id: "airgo",
-    title: "Flight Reservation System based on node express & mongoDB",
+    title: "AirGo: Flight Reservation System based on node express & mongoDB",
     description:
       "A flight reservation system that allows users to search for flights, book tickets, and manage their reservations. The system is built using Node.js, Express, and MongoDB, providing a robust and scalable backend for handling user requests and data storage. Generates tickets as pdf document",
     url: "https://airgoworld.onrender.com",
@@ -151,7 +151,7 @@ export const projects: Project[] = [
   },
   {
     id: "kepler",
-    title: "Ruby on Rails CRUD application to create and share microposts",
+    title: "Kepler: Ruby on Rails CRUD application to create and share microposts",
     description:
       "A simple Ruby on Rails CRUD application that allows users to create, read, update, and delete microposts. Users can share their thoughts and ideas in short posts, similar to Twitter. The application features user authentication, responsive design, and a clean user interface.",
     url: "https://github.com/abhinvv1/kepler",
