@@ -4,7 +4,7 @@ export const projects: Project[] = [
   {
     id: "isort",
     title:
-      "A Ruby gem that automatically sorts and organizes your import statements in Ruby files",
+      "isort: A Ruby gem that automatically sorts and organizes your import statements in Ruby files",
     description:
       "Sorts import statements correctly as per the norms, groups imports by type (require, require_relative, include, extend), preserves code structure and spacing, maintains conditional requires, respects nested class and module definitions. You can use it on a file or a complete directory at once.",
     url: "https://rubygems.org/gems/isort",
@@ -22,7 +22,7 @@ export const projects: Project[] = [
   },
   {
     id: "log-monitor",
-    title: "Real-Time Log Monitoring and Broadcasting System",
+    title: "Log Monitor: Real-Time Log Monitoring and Broadcasting System",
     description:
       "Real-time log monitoring and broadcasting app leveraging asyncio, WebSockets, docker and NGINX for monitoring huge size log files and broadcasting updates to multiple clients in real-time.",
     url: "https://github.com/pixelcaliber/Log-Monitor",
@@ -42,7 +42,7 @@ export const projects: Project[] = [
   {
     id: "t3-ai",
     title:
-      "Reinforcement learning leveraged Tic Tac Toe against an AI game powered by a Q-learning agent",
+      "t3-AI: Reinforcement learning leveraged Tic Tac Toe against an AI game powered by a Q-learning agent",
     description:
       "This project is a full-fledged web application built using Python Flask (backend) and a React/Next.js frontend. It allows users to play a game of Tic Tac Toe against an AI powered by a Q-learning agent. The application supports multiple users simultaneously by isolating each game session with unique session IDs and includes rate limiting to prevent abuse. It replays each game and apply bellman equation to readjust weights and improve from its gameplay through reinforcement learning. Q-learning agent: a type of reinforcement learning algorithm where an agent learns to take actions in an environment by maximizing a cumulative reward.",
     url: "https://t3-ai.vercel.app/",
@@ -62,7 +62,7 @@ export const projects: Project[] = [
   {
     id: "hype",
     title:
-      "hype is a minimalistic video calling web application built WebRTC, STURN and TURN servers.",
+      "hype: A minimalistic video calling web application built WebRTC, STURN and TURN servers.",
     description:
       "A minimalistic video calling web application built with WebRTC, STUN, and TURN servers for real-time communication. It enables peer-to-peer video calls directly in the browser without the need for plugins or downloads. The application uses a signaling server to establish connections and manage call sessions, ensuring low latency and high-quality video and audio transmission. Ideal for personal and professional use, hype provides a seamless and secure video calling experience with support for isolated rooms and multiple users.",
     url: "https://hype-eta.vercel.app",
@@ -93,7 +93,7 @@ export const projects: Project[] = [
   {
     id: "reddit-code",
     title:
-      "Reddit-Code is a VS Code extension that brings the power of Reddit directly into your IDE. Stay up-to-date with your favorite subreddits without leaving your code editor.",
+      "Reddit-Code: A VS Code extension that brings the power of Reddit directly into your IDE.",
     description:
       "A VS Code extension that integrates Reddit into the development environment, allowing users to browse and interact with their favorite subreddits without leaving the editor. The extension features a sidebar for subreddit feeds, post previews, and the ability to upvote or downvote posts directly from the IDE.",
     url: "https://github.com/pixelcaliber/Reddit-Code/commits/first-release",
@@ -105,9 +105,9 @@ export const projects: Project[] = [
   {
     id: "sentinel",
     title:
-      "Sentinel: A Highly Scalable and Powerful Chat Application facilitating messaging between individuals for seamless communication.",
+      "Sentinel: A Chat Application facilitating messaging between individuals for seamless communication.",
     description:
-      "A chat application that provides a seamless messaging experience between individuals. It is designed to be highly scalable and powerful, capable of handling a large number of users and messages. The application features real-time messaging, user authentication, and a clean user interface.",
+      "A Highly Scalable and Powerful Chat Application that provides a seamless messaging experience between individuals. It is designed to be highly scalable and powerful, capable of handling a large number of users and messages. The application features real-time messaging, user authentication, and a clean user interface.",
     url: "https://github.com/pixelcaliber/Sentinel",
     github: "https://github.com/pixelcaliber/Sentinel",
     tags: [
