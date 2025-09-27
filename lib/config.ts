@@ -50,5 +50,15 @@ export const siteConfig: SiteConfig = {
       url: "https://reddit.com/u/pixelcaliber",
       icon: "reddit",
     },
+    {
+      name: "Medium",
+      url: "https://medium.com/@abhinavpandey0032",
+      icon: "medium",
+    },
+    {
+      name: "Substack",
+      url: "https://pixelcalibre.substack.com",
+      icon: "substack",
+    },
   ],
 };
