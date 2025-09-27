@@ -1,0 +1,32 @@
+In this article we are going talk about transations and concurrency control. Let's first start with leaning about transactions.
+
+## Transactions
+
+A transaction is an indivisible logical unit of work in a database management system. It allows us to represent multiple operations as a single step. Operations executed by transactions include reading and writing database records. A database transaction has to preserve atomicity, consistency, isolation and durability. These properties are commonly referred as ACID properties.
+
+### Atomicity
+
+Transaction steps are indivisible, which means that either all the steps will get executed successfully or none of them do. Transactions should not be applied partially, each on of them can either commit i.e. make all the changes from write operations executed visible or abort i.e. roll back all it's side effects that haven't been made visible. A commit is a final operation. after an abort the transaction can be retired.
+
+#### Consistency
+
+Consistency means a transaction should only bring the database from one valid point to another valid state, maintaining all database invariants such as constraints, referential integrity and others. Consistency is mostly controlled by the user and least controlled by the database hence we can also refer it as an application property.
+
+#### Isolation
+
+Multiple concurrently executing transactions should be able to run without interference from each other. It should always appear to the database records that there is only one transaction running at a time on the same records. Isolation also defines when the changes to the database state may become visible and what changes may become visible to the concurrent transactions. Many databases uses isolation levels that are weaker than the definition because of performance benefits, we'll discuss them in details later. In practical, depending on the internal implementation of isolation level the changes made by a transaction may or may not become visible to the concurrent transactions.
+
+#### Durability
+Once a transaction is complete and the changes are commited. The records must be durable and survive power outrages or system failures, etc, the data records and all the state changes must remain durable to such factors.
+
+----
+
+To actual implement and manage transaction on DBMS requires multiple components to work together, let's discuss more about the database architecture to understand what are the components. 
+
+### Database Architecture
+While there is no common blueprint of a DBMS, in practical all database systems are built slightly different but yet they share common boundaries with each other. 
+
+
+### Concurrency control
+
+

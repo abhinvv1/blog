@@ -5,6 +5,7 @@ import { getAllPosts, getFeaturedPosts } from '@/lib/posts';
 import { getFeaturedProjects } from '@/lib/projects';
 import { formatDate } from '@/lib/utils';
 import { siteConfig } from '@/lib/config';
+import { Analytics } from "@vercel/analytics/next"
 
 export default function HomePage() {
   const recentPosts = getAllPosts().slice(0, 3);
@@ -13,6 +14,7 @@ export default function HomePage() {
 
   return (
     <div className="space-y-16">
+      <Analytics />
       {/* Hero Section */}
       <section className="text-center space-y-6">
         <h1 className="text-4xl md:text-6xl font-bold text-dark-100">

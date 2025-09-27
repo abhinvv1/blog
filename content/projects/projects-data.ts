@@ -17,7 +17,7 @@ export const projects: Project[] = [
       "Developer Tools",
       "Ruby",
     ],
-    featured: true,
+    featured: false,
     status: "completed",
   },
   {
@@ -36,7 +36,7 @@ export const projects: Project[] = [
       "Real-Time",
       "Monitoring Tools",
     ],
-    featured: true,
+    featured: false,
     status: "completed",
   },
   {
@@ -158,6 +158,6 @@ export const projects: Project[] = [
     github: "https://github.com/abhinvv1/kepler",
     tags: ["Ruby on Rails", "CRUD", "MySQL", "Ruby", "Web Development"],
     featured: false,
-    status: "planned",
+    status: "completed",
   },
 ];
