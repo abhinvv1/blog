@@ -1,6 +1,6 @@
 ---
 title: "Understanding Van Emde Boas Trees (vEB Trees)"
-description: "Van Emde Boas tree provides O(log log U) TC for insert, delete, search, successor, and predecessor operations on integer sets."
+description: "Van Emde Boas tree provides O(log log U) time complexity for insert, delete, search, successor, and predecessor operations on integer sets."
 date: "2025-10-03"
 tags: ["C++", "Rubygems", "Van Emde Boas Trees", "Data Structure and Algorithm"]
 published: true
@@ -23,7 +23,7 @@ The key idea of a vEB tree is to recursively divide the universe of keys into �
 
 Each vEB **node** (representing a range [0..*U*-1]) stores:
 
-- **`min` and `max`**: the minimum and maximum keys in the subtree.
+- `min` and `max`: the minimum and maximum keys in the subtree.
 - **Clusters**: an array of √U child pointers, each covering a subrange.
 - **Summary**: a vEB structure of size √U that keeps track of which clusters are non-empty.
 
@@ -128,15 +128,6 @@ Steps to insert x into a vEB tree T:
 
 ---
 
-### Search
-
-```
-if x == min or x == max → found
-else look into cluster[high(x)] for low(x)
-```
-
----
-
 ### Successor
 
 1. If x < min → successor = min.  
@@ -199,12 +190,13 @@ ASCII View:
 ---
 
 ## Performance Comparison
-
+```
 | Data Structure | Insert/Search/Delete | Min/Max | Space    |
 |----------------|----------------------|---------|----------|
 | BST (balanced) | O(log n)             | O(log n)| O(n)     |
 | Binary Heap    | O(log n)             | O(1)    | O(n)     |
 | vEB Tree       | O(log log U)         | O(1)    | O(U)     |
+```
 
 ---
 
@@ -246,5 +238,3 @@ def insert(T, x):
 The vEB tree achieves *O(log log U)* operations by recursively structuring the universe.  
 It is faster than BSTs and heaps in theory, but consumes *O(U)* space.  
 It’s ideal when the universe size is not excessively large compared to the number of elements.
-
----
