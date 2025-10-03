@@ -82,14 +82,14 @@ export default function HomePage() {
                       {post.tags.slice(0, 3).map((tag) => (
                         <span
                           key={tag}
-                          className="inline-flex items-center space-x-1 text-xs bg-dark-800 text-light-300 px-2 py-1 rounded-md"
+                          className="inline-flex items-center space-x-1 text-xs bg-dark-800 text-primary-500 px-2 py-1 rounded-md"
                         >
                           <Tag className="h-3 w-3" />
                           <span>{tag}</span>
                         </span>
                       ))}
                       {post.tags.length > 3 && (
-                        <span className="text-xs text-dark-400">
+                        <span className="text-xs text-light-400">
                           +{post.tags.length - 3} more
                         </span>
                       )}
