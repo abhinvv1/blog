@@ -80,6 +80,24 @@ export const projects: Project[] = [
     status: "completed",
   },
   {
+    id: "veb_tree",
+    title:
+      "Van-Emde-Boas-tree: A Ruby gem implementation of high-performance Van Emde Boas (vEB) tree with a C++17 core.",
+    description:
+      "VebTree is a production-quality Van Emde Boas tree implementation providing O(log log U) time complexity for insert, delete, search, successor, and predecessor operations on integer sets. The core algorithm is implemented in C++17 for maximum performance with an idiomatic Ruby API. Perfect for applications requiring fast integer set operations, range queries, and successor/predecessor lookups within a bounded universe.",
+    url: "https://rubygems.org/gems/veb_tree",
+    github: "https://github.com/abhinvv1/Van-Emde-Boas-tree",
+    tags: [
+      "RubyGems",
+      "c++",
+      "Gems",
+      "Ruby",
+      "Van-Emde-Boas-tree"
+    ],
+    featured: true,
+    status: "completed",
+  },
+  {
     id: "blog-website",
     title: "Personal Blog & Portfolio Website",
     description:
