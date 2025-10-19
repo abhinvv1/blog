@@ -1,0 +1,24 @@
+---
+title: "PostgreSQL Performance Tuning"
+description: "Is your PostgreSQL read or write heavy?"
+date: "2025-10-17"
+tags: ["System Design", "Database", "PostgreSQL", "DBMS"]
+published: true
+featured: false
+author: "Abhinav Pandey"
+---
+
+# PostgreSQL Performance Dilemma
+Recently, I got asked a question by one of my colleagues: whether our database is read-heavy or write-heavy? I always assumed it is write-heavy, but never really cared about this metric. This is something interesting and definitely worth a try to actually visualize the numbers and see the behaviour on our own, so I started finding the answer. Eventually, I came up with a pretty interesting solution, which I thought was worth sharing.
+
+### Why do you care?
+So, the origin of this question was related to performance tuning, and if we don't know whether our database is read or write-heavy, we cannot actually tune it. So, if you are in a similar situation to me, this is very much important to you to understand this metric.
+Of course, whether the database is ready or write-heavy is dependent on our business logic. For example, a social media application will be read-heavy, and a logging system or chat application could be write-heavy. But many of us have mixed application usage, and thus knowing the read and write load can help make informed decisions about tuning and architecture priorities.
+For example, a read-heavy database might benefit more from extensive indexing, query caching, and read replicas, but a write-heavy database might require a faster storage solution, efficient WAL (write-ahead log) management, careful table design considerations such as fill factor and autovacuum tuning, and better transaction isolation levels.
+
+### First Baby Step
+#### Read and writes are not really equal
+
+The first step is to understand that in most of the databases, the reads and writes are not really equal in terms of performance. For example:
+- Postgres reads data in whole 8 KB units, called blocks on disk or pages once they are part of the shared memory. 
+
