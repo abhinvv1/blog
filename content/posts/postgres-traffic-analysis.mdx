@@ -20,5 +20,4 @@ For example, a read-heavy database might benefit more from extensive indexing, q
 #### Read and writes are not really equal
 
 The first step is to understand that in most of the databases, the reads and writes are not really equal in terms of performance. For example:
-- Postgres reads data in whole 8 KB units, called blocks on disk or pages once they are part of the shared memory. 
-
+- Postgres reads data in whole 8 KB units, called blocks on disk or pages once they are part of the shared memory. The cost of reading the data is much lower than writing. Since the most frequently used data generally resides in the shared buffers or the OS cache, many queries never need additional physical IO and can return results just from memory.
