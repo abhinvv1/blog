@@ -98,6 +98,17 @@ export const projects: Project[] = [
     status: "completed",
   },
   {
+    id: "paskey",
+    title: "Paskey Web - A secure, zero-knowledge password generator that creates consistent passwords using cryptographic hashing.",
+    description:
+      "Stop remembering passwords. Start generating them. You have dozens of accounts. Each one wants a unique, complex password. Password managers store them, but what happens when you can't access your vault? What if the service gets breached? Paskey takes a different approach: your passwords are never stored anywhere. Instead, they're mathematically generated on-demand using inputs only you know. Same inputs, same password - every time, on any device.",
+    url: "https://paskey.vercel.app",
+    github: "https://github.com/abhinvv1/paskey",
+    tags: ["Node.js", "Firebase", "Vite", "Algorithms", "Crypto"],
+    featured: true,
+    status: "completed",
+  },
+  {
     id: "blog-website",
     title: "Personal Blog & Portfolio Website",
     description:
